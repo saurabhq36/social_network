@@ -324,14 +324,16 @@ class ListFriendsView(APIView):
 
 
 
-class ListPendingFriendRequestsView(generics.ListAPIView):
+    
+class ListPendingFriendRequestsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        user = self.request.user
-        return FriendRequest.objects.filter(to_user=user, status='pending').order_by('-created_at')
-    
     def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = FriendRequestSerializer(queryset, many=True)
+        user = request.user
+        pending_requests = FriendRequest.objects.filter(to_user=user, status='pending').order_by('-created_at')
+        
+        # Serialize the pending friend requests
+        serializer = FriendRequestSerializer(pending_requests, many=True)
+        
+        # Return the serialized data with a 200 OK status
         return Response(serializer.data, status=status.HTTP_200_OK)
